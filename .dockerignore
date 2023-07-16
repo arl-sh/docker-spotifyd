@@ -1,9 +1,0 @@
-arm-docker
-build-release
-contrib
-README.md
-.git
-.gitignore
-.travis.yml
-Dockerfile*
-target

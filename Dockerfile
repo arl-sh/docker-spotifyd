@@ -1,26 +1,32 @@
-FROM rust:1.66-bullseye as build
+FROM rust:bookworm as build
 
 ARG BRANCH=master
+ARG FEATURES=pulseaudio_backend
 
-WORKDIR /usr/src/spotifyd
+WORKDIR /spotifyd
 
-RUN apt-get -yqq update && \
-    apt-get install --no-install-recommends -yqq libasound2-dev && \
-    git clone --branch=${BRANCH} https://github.com/Spotifyd/spotifyd.git . 
+RUN apt-get -y update && apt-get install -y \
+    libasound2-dev
 
-RUN cargo build --release
+RUN git clone --branch=${BRANCH} https://github.com/Spotifyd/spotifyd.git . 
+RUN cargo build --release --features ${FEATURES}
 
-FROM debian:buster-slim as release
+FROM debian:bookworm-slim
 
-CMD ["/usr/bin/spotifyd", "--no-daemon"]
+COPY --from=build /spotifyd/target/release/spotifyd /usr/bin/
 
-RUN apt-get update && \
-    apt-get install -yqq --no-install-recommends libasound2 && \
-    rm -rf /var/lib/apt/lists/* && \
-    groupadd -r spotify && \
-    useradd --no-log-init -r -g spotify -G audio spotify
+RUN apt-get -y update && apt-get install -y \
+    libasound2 \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /usr/src/spotifyd/target/release/spotifyd /usr/bin/
+RUN groupadd -r spotify && \
+    useradd -rmg spotify -G audio spotify
 
 USER spotify
+WORKDIR /home/spotify
 
+COPY spotifyd.conf ~/.config/spotifyd
+
+EXPOSE 59071
+
+CMD /usr/bin/spotifyd --no-daemon
