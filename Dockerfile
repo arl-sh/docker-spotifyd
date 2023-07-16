@@ -25,7 +25,7 @@ RUN groupadd -r spotify && \
 USER spotify
 WORKDIR /home/spotify
 
-COPY spotifyd.conf ~/.config/spotifyd
+COPY --chown=spotify:spotify ./spotifyd.conf ./.config/spotifyd/spotifyd.conf
 COPY --from=build /spotifyd/target/release/spotifyd /usr/bin/
 
 EXPOSE 59071
