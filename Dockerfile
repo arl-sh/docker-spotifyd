@@ -19,16 +19,15 @@ RUN apt-get -y update && apt-get install -y \
     pulseaudio \
     && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd -r spotify && \
-    useradd -rmg spotify -G audio spotify
-
-USER spotify
-WORKDIR /home/spotify
-
-COPY --chown=spotify:spotify ./spotifyd.conf ./.config/spotifyd/spotifyd.conf
 COPY ./pulse-client.conf /etc/pulse/client.conf
 COPY --from=build /spotifyd/target/release/spotifyd /usr/bin/
 
-EXPOSE 59071
+RUN groupadd -r spotifyd && \
+    useradd -rmg spotifyd -G audio spotifyd
+
+USER spotifyd
+WORKDIR /home/spotifyd
+
+COPY --chown=spotifyd:spotifyd ./spotifyd.conf ./.config/spotifyd/spotifyd.conf
 
 CMD /usr/bin/spotifyd --no-daemon
