@@ -19,8 +19,8 @@ RUN apt-get -y update && apt-get install -y \
     pulseaudio \
     && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd -rg 1000 spotify && \
-    useradd -rmu 1000 -g spotify -G audio spotify
+RUN groupadd -r spotify && \
+    useradd -rmg spotify -G audio spotify
 
 USER spotify
 WORKDIR /home/spotify
