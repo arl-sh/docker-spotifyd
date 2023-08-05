@@ -14,16 +14,19 @@ RUN cargo build --release --features ${FEATURES}
 
 FROM debian:bookworm-slim
 
+ARG UID=995
+ARG GID=995
+
 RUN apt-get -y update && apt-get install -y \
     libasound2 \
-    pulseaudio \
+    libpulse0 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY ./pulse-client.conf /etc/pulse/client.conf
 COPY --from=build /spotifyd/target/release/spotifyd /usr/bin/
 
-RUN groupadd -r spotifyd && \
-    useradd -rmg spotifyd -G audio spotifyd
+RUN groupadd -rg ${GID} spotifyd && \
+    useradd -rmu ${UID} -g spotifyd -G audio spotifyd
 
 USER spotifyd
 WORKDIR /home/spotifyd
